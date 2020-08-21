@@ -17,13 +17,13 @@ spec:
     spec:
       containers:
        - name: crd-conversion-webhook
-         image: quay.io/madorn/crd-conversion-webhook
+         image: quay.io/madorn/openshift-crd-conversion-webhook:latest
          args:
            - -tls-cert-file=/etc/webhook/certs/tls.crt
            - -tls-private-key-file=/etc/webhook/certs/tls.key
          ports:
          - name: tls
-           containerPort: 443
+           containerPort: 6443
          volumeMounts:
            - name: webhook-certs
              mountPath: /etc/webhook/certs
