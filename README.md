@@ -1,8 +1,7 @@
-# crd-conversion-webhook
+# openshift-crd-conversion-webhook
 
 ## Requirements
-* Kubernetes 1.15 (Latest version of `minikube` should work)   
-* Kubernetes 1.13/1.14 will work if `CustomResourceWebhookConversion` [Feature Gate](https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates/) is enabled
+* OpenShift 4.3 or greater.
 * [jq](https://stedolan.github.io/jq/download/)
      
 ## Setup: Deploy the Webhook
@@ -11,18 +10,15 @@
 ```
 kubectl create -f deploy/namespace.yaml
 ```
-### Create the secret that contains the signed cert and private key
+### Create the webhook service - this will automatically cause serving-ca operator to generate the signed cert and private key
 ```
-kubectl create -f deploy/sample-secret.yaml
+kubectl create -f deploy/service.yaml
 ```
 ### Create the webhook pod
 ```
 kubectl create -f deploy/deployment.yaml
 ```
-### Expose the webhook pod as a ClusterIP service
-```
-kubectl create -f deploy/service.yaml
-```
+
 ## Exercise: Simulate the CRD upgrade process
 
 ### Create the initial `v1beta` CRD
@@ -104,6 +100,8 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   name: crontabs.stable.example.com
+  annotations:
+    service.beta.openshift.io/inject-cabundle: "true"
 spec:
   preserveUnknownFields: false
   group: stable.example.com
@@ -141,7 +139,7 @@ spec:
         namespace: crd-conversion-webhook
         name: crd-conversion-webhook
         path: /crdconvert
-      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM1ekNDQWMrZ0F3SUJBZ0lCQVRBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwdGFXNXAKYTNWaVpVTkJNQjRYRFRFNU1ERXdPVEU1TkRNd01Gb1hEVEk1TURFd056RTVORE13TUZvd0ZURVRNQkVHQTFVRQpBeE1LYldsdWFXdDFZbVZEUVRDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTnhECmE3NEptc2NVSGRxSWVOQ29nQjZHaUllMnhZai9nWUl2WU82eGVCSmFISlF0NXJZdUVMcWpEbU9qK1R4QisxQUUKK2UyRnNkNXplME94WWx2V3FOTWVrWm5USVE2ZCtqRnZwc2JBNHMrbW5wQkVuR04vUXA1WXdEdDBRZnEyd0x1QwpCaW0rWHMwTVNROHEyWUZDRUpsUUhUbU5YeGRlOFcySVJaK1R0RTV2U0V4VW5oL2M4dDgzd3VqS2ZwTXV0MXJIClhFOEJzVjBjcm5sOVBmR0lsbFJ4VHp5ZFMzWUlIZXBJaDQrb251Q1dSTHhEOU1Lci9GRUV1ZWJObloxYng0cmQKd0JHU1p1MjQ2Q1BlYmhmckxhOTdZdEtZVnRCTm1FRlJpdHRRV2RqZXBLWDRnS2trSnNTeU1xSVI4VWlCRkFJZApneldDc2pvKzluR25XVk5TMEtNQ0F3RUFBYU5DTUVBd0RnWURWUjBQQVFIL0JBUURBZ0trTUIwR0ExVWRKUVFXCk1CUUdDQ3NHQVFVRkJ3TUNCZ2dyQmdFRkJRY0RBVEFQQmdOVkhSTUJBZjhFQlRBREFRSC9NQTBHQ1NxR1NJYjMKRFFFQkN3VUFBNElCQVFBY3lScmtEWVhybDlLVE55dzc4TVY0K1dDUEhUVEEwa3kvZE9vdFJnV0pRTXl2Yk5CNworZ3hvRGxSR0pNZmVDU09uL0NoaVhoWFNldk5EWVk4UmZ6Zm0yWjFMNVJuRmRuS1ZaaG5ZWnFjaWZ5WlFtZTI1Ck5zLzEwUHlrTkplWFpmdEhvTnNqbFc0dndvWkJsdmxrVEtrOExmTVBUSTVERUxTa3ZJK0ZxNTNhM3REdXlvanEKYlQ5cEYwTGxacDR2Rk9SOGVYbmtaVTN5ZDVQbDFBMWhqcDJVTG9aV05JY2pEbWVhQ3dsMTdZdlpLUlpHWCt6bApUNktOS0pEYm04a0pZSzhrTCtpT3VwaGZaRUpFaUJwcEwwOXNIeHU1Y0FNRVp4c3JSakhNMDdrclpjdnBiUU5sCmU2b1hndmUvZEJrM1FVdFVRbStETTRkSTdEa1BjRGI1R3Y3VQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+      caBundle: <serving-cert operator will automatically populate this>
   scope: Namespaced
   names:
     plural: crontabs
